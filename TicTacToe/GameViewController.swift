@@ -17,8 +17,7 @@ class GameViewController: UIViewController, BoardViewControllerDelegate {
     }
     
     @IBAction func restartGame(_ sender: Any) {
-        board = GameBoard()
-        gameState = .active(.x)
+        game.restart()
     }
     
     // MARK: - BoardViewControllerDelegate
@@ -30,10 +29,10 @@ class GameViewController: UIViewController, BoardViewControllerDelegate {
         }
         
         do {
-            try board.place(mark: player, on: coordinate)
-            if game(board: board, isWonBy: player) {
+            try game.makeMark(at: coordinate)
+            if let player = game.winningPlayer {
                 gameState = .won(player)
-            } else if board.isFull {
+            } else if game.board.isFull {
                 gameState = .cat
             } else {
                 let newPlayer = player == .x ? GameBoard.Mark.o : GameBoard.Mark.x
@@ -63,7 +62,7 @@ class GameViewController: UIViewController, BoardViewControllerDelegate {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "EmbedBoard" {
-            boardViewController = segue.destination as! BoardViewController
+            boardViewController = segue.destination as? BoardViewController
         }
     }
     
@@ -72,7 +71,7 @@ class GameViewController: UIViewController, BoardViewControllerDelegate {
             boardViewController?.delegate = nil
         }
         didSet {
-            boardViewController?.board = board
+            boardViewController?.board = game.board
             boardViewController?.delegate = self
         }
     }
@@ -85,9 +84,9 @@ class GameViewController: UIViewController, BoardViewControllerDelegate {
         }
     }
     
-    private var board = GameBoard() {
+    private var game = Game(board: GameBoard(), activePlayer: .x, gameIsOver: false, winningPlayer: nil) {
         didSet {
-            boardViewController.board = board
+            boardViewController.board = game.board
         }
     }
 }
